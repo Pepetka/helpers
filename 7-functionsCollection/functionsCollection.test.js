@@ -26,7 +26,7 @@ describe('functionsCollection', () => {
 			});
 		}
 	]
-	test('', async () => {
+	test('test calling order', async () => {
 		await functionsCollection(funcArr);
 		expect(callingOrder).toEqual([1, 2, 3, 4]);
 	});
