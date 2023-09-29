@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+				content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		/**
+		 * Функция, переводящая килобайты в байты и создающая строку с этим размером
+		 * @param num - килобайты
+		 * @returns {string} - строка длины количества байт
+		 */
+		function getByteString(num) {
+			return new Array((num * 1024) + 1).join('a');
+		}
+
+		/**
+		 * Функция, рассчитывающая максимальный доступный размер localStorage с погрешностью 1 KB
+		 */
+		function getLocalStorageSize() {
+			const key = '__test__';
+			let i = 0;
+
+			try {
+				try {
+					try {
+						// Ставим лимит в 10 мегабайт, записываем в localStorage символы с шагом 250 KB
+						for (i; i <= 10 * 1024; i += 250) {
+							localStorage.setItem(key, getByteString(i));
+						}
+					} catch (e) {
+						// при возникновении ошибки, уменьшаем шаг до 50 KB
+						i -= 250;
+						const currI = i;
+						for (i; i <= currI + 250; i += 50) {
+							localStorage.setItem(key, getByteString(i));
+						}
+					}
+				} catch (e) {
+					// при возникновении ошибки, уменьшаем шаг до 1 KB
+					i -= 50;
+					const currI = i;
+					for (i; i <= currI + 50; i += 1) {
+						localStorage.setItem(key, getByteString(i));
+					}
+				}
+			} catch (e) {
+				// удаляем записанное значение
+				localStorage.removeItem(key);
+				return i ? i - 1 : 0;
+			}
+		}
+
+		const maxSize = getLocalStorageSize();
+		console.log(`${maxSize / 1024} MB`);
+	</script>
+</body>
+</html>
