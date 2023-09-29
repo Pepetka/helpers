@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+				content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+		div {
+			width: auto;
+		}
+		ul {
+			max-height: 500px;
+			overflow-y: auto;
+			width: 100%;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			list-style: none;
+		}
+		li {
+			border-bottom: 1px rgb(128, 128, 128) solid;
+		}
+		input {
+			width: 300px;
+		}
+		button {
+			background: none;
+			border: none;
+			width: 100%;
+			height: 100%;
+			text-align: start;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<label>
+			Искать адрес
+			<input type="text" placeholder="Начните вводить адрес" />
+		</label>
+		<ul style="display: none">
+		</ul>
+	</div>
+
+	<script>
+		const input = document.querySelector('input');
+		const list = document.querySelector('ul');
+
+		/**
+		 * Функция, возвращающая функцию, оборачивающую переданную аргументом функцию, дополняя ее debounce'ом
+		 * @param fn - оборачиваемая функция
+		 * @param timeout - время задержки между вызовами функции
+		 * @returns {function(...[*]): void} - оборачивающая функция
+		 */
+		function debounce(fn, timeout = 1000) {
+			let timerId = null;
+
+			return (...args) => {
+				if (timerId) {
+					clearTimeout(timerId);
+					timerId = null;
+				}
+
+				timerId = setTimeout(() => {
+					fn(...args);
+					timerId = null;
+				}, timeout);
+			}
+		}
+
+		/**
+		 * Функция, помещающая на страницу адреса
+		 * @param addresses - массив адресов
+		 */
+		function renderAddresses(addresses) {
+			const list = document.querySelector('ul');
+
+			list.style.display = 'flex';
+			list.innerHTML = addresses.reduce((acc, {GeoObject: {metaDataProperty: {GeocoderMetaData: {Address:
+				{formatted: address}}}}}) => acc + `<li><button>${address}</button></li>`, ``)
+		}
+
+		/**
+		 * Функция, вызываемая при вводе данных в инпут с debounce'ом
+		 * @type {function(...[*]): void}
+		 */
+		const withDebounce = debounce(async (event) => {
+			const search = event.target.value;
+			if (search.trim() === '') return;
+
+			const data = await
+				fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=193fc298-63c1-476e-81c3-462c6c5f506b&geocode=${search}&format=json`).then((res) => res.json());
+
+			renderAddresses(data.response.GeoObjectCollection.featureMember);
+		});
+
+		input.addEventListener('input', withDebounce);
+		list.addEventListener('click', (event) => {
+			if (event.target.tagName === 'BUTTON') {
+				list.style.display = 'none';
+				input.value = event.target.innerText;
+			}
+		});
+	</script>
+</body>
+</html>
